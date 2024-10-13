@@ -1,0 +1,4 @@
+server/server-pico_server.tar
+server/venv
+client/.vscode
+client/.micropico

@@ -1,0 +1,8 @@
+services:
+  pico_server:
+    build: ./pico_server  # Dockerfile for pico_server should be inside ./pico_server directory
+    container_name: pico_container
+    ports:
+      - "5000:5000"
+      - "6000:6000"
+    command: python server.py
