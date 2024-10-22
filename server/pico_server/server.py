@@ -6,7 +6,7 @@ import socket
 app = Flask(__name__)
 
 # List to keep track of connected socket clients
-clients = []
+clients = {}
 
 # Function to handle the Flask server
 def run_flask():
@@ -21,6 +21,36 @@ def send_wake(username):
             except Exception as e:
                 print(f"Error sending message to client: {e}")
                 clients.remove(client)
+
+def handle_client(client_socket, username):
+    """
+    Handles a single client connection by listening for messages and responding
+    if needed.
+
+    Parameters:
+    client_socket (socket.socket): The socket object for the client connection
+    username (str): The username of the client
+
+    Returns:
+    None
+    """
+    
+    while True:
+        try:
+            data = client_socket.recv(1024)
+            if not data:
+                print(f"Client {username} disconnected")
+                break
+            # Handle 'keep_alive' or other messages if needed
+            message = data.decode('utf-8')
+            if message == 'keep_alive':
+                print(f"Received keep_alive from {username}")
+        except Exception as e:
+            print(f"Error with client {username}: {e}")
+            break
+    client_socket.close()
+    del clients[username]
+
 
 # Flask route to receive POST request
 @app.route('/wake/<username>', methods=['POST'])
@@ -44,12 +74,11 @@ def socket_server():
         username = client_socket.recv(1024).decode('utf-8')
         print(f"got clients username {username}")
 
-        client_dic = {
-            "username": username,
-            "socket": client_socket
-        }
-
-        clients.append(client_dic)
+        clients[username] = client_socket
+        #start a new thread for each client
+        client_thread = threading.Thread(target=handle_client, args=(client_socket, username))
+        client_thread.daemon = True
+        client_thread.start()
 
 # Main execution starts here
 if __name__ == '__main__':
