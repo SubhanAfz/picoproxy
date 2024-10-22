@@ -15,9 +15,8 @@ def run_flask():
 # Broadcast message to all connected socket clients
 def send_wake(username):
     for client in clients:
-        if client["username"] == username:
             try:
-                client["socket"].send("wake".encode('utf-8'))
+                client[username].send("wake".encode('utf-8'))
             except Exception as e:
                 print(f"Error sending message to client: {e}")
                 clients.remove(client)
